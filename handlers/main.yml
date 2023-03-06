@@ -1,0 +1,6 @@
+---
+
+- name: Start ZeroTier service
+  service:
+    name: zerotier-one
+    state: started

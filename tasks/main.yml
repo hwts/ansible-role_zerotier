@@ -1,0 +1,31 @@
+---
+
+- name: Add ZeroTier repository key
+  get_url:
+    url: https://raw.githubusercontent.com/zerotier/ZeroTierOne/master/doc/contact%40zerotier.com.gpg
+    dest: /etc/apt/trusted.gpg.d/zerotier.asc
+
+- name: Add ZeroTier repository
+  apt_repository:
+    repo: "deb https://download.zerotier.com/debian/{{ ansible_distribution_release|lower }} {{ ansible_distribution_release|lower }} main"
+    state: present
+    filename: zerotier
+
+- name: Install ZeroTier package
+  apt:
+    name: zerotier-one
+    state: present
+  notify: Start ZeroTier service
+
+- name: Check ZeroTier network status
+  command: "zerotier-cli listnetworks | grep -q {{ zt_network }}"
+  register: zt_network_status
+  changed_when: false
+  failed_when: false
+
+- debug:
+    var: zt_network_status
+
+- name: Join ZeroTier network
+  command: "zerotier-cli join {{ zt_network }}"
+  when: zt_network_status.rc != 0
